@@ -1,6 +1,6 @@
 {
-  "name": "o-table",
-  "description": "FT-branded tables",
+  "name": "o-three-sixty",
+  "description": "Display 360 panoramic videos",
   "devDependencies": {
     "babel-loader": "^5.3.2",
     "babel-runtime": "5.8.25",
@@ -21,6 +21,7 @@
     "test": "./node_modules/karma/bin/karma start karma.conf.js"
   },
   "dependencies": {
+    "three": "^0.78.0",
     "webvr-polyfill": "^0.9.15"
   }
 }

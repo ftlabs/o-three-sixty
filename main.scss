@@ -1,27 +1,92 @@
-$o-table-is-silent: true !default;
+$o-buttons-is-silent: true;
+@import 'o-buttons/main';
+@import "o-icons/main";
 
-@import "o-colors/main";
-@import "o-grid/main";
-@import "o-typography/main";
+[data-o-component="o-three-sixty"] {
+	display: inline-block;
+    position: relative;
 
-@import "src/scss/color-use-cases";
-@import "src/scss/mixins";
-@import "src/scss/captions";
-@import "src/scss/base";
-@import "src/scss/responsive-flat";
-@import "src/scss/responsive-overflow";
-@import "src/scss/responsive-scroll";
-@import "src/scss/compact";
-@import "src/scss/cells";
-@import "src/scss/row-stripes";
-@import "src/scss/lines";
-@import "src/scss/borders";
+	canvas {
+		max-width: 100vw;
+		max-height: 100vh;
+	}
 
-@import "src/scss/deprecated";
+	.button-container {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		top: 0;
+		right: 0;
+		padding: 0.5em;
+		text-align: right;
+		vertical-align: bottom;
+		pointer-events: none;
 
-@if ($o-table-is-silent == false) {
-	@include oTableAll;
+		button {
 
-	// Set table to silent again to avoid being output twice
-	$o-table-is-silent: true !global;
+			pointer-events: auto;
+			display: inline-block;
+			@include oButtons(big, inverse);
+
+			&.play-icon {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				border-radius: 50%;
+				border: none;
+				width: 70px;
+				height: 70px;
+				padding: 0;
+				margin: 0;
+				text-align: center;
+				font-size: 0;
+				@include oIconsGetIcon(play, #2bbbbf, 70px);
+			}
+
+			&.cardboard-icon:before {
+				display: inline-block;
+				content: '';
+				width: 1.5em;
+				height: 1.5em;
+				background: url("assets/cardboard.svg") no-repeat center center;
+				background-size: contain;
+				vertical-align: top;
+				margin: -0.25em 0;
+				margin-right: 0.2em;
+			}
+		}
+	}
+
+	button.exit-fullscreen {
+		display: none !important;
+	}
+
+	&:fullscreen {
+		button.exit-fullscreen {
+			display: inline-block !important;
+		}
+
+		button.fullscreen {
+			display: none !important;
+		}
+	}
+	&:-moz-full-screen {
+		button.exit-fullscreen {
+			display: inline-block !important;
+		}
+
+		button.fullscreen {
+			display: none !important;
+		}
+	}
+	&:-webkit-full-screen {
+		button.exit-fullscreen {
+			display: inline-block !important;
+		}
+
+		button.fullscreen {
+			display: none !important;
+		}
+	}
 }

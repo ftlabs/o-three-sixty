@@ -1,5 +1,7 @@
 'use strict';
-/* global THREE, document, navigator */
+/* global document, navigator, window, cancelAnimationFrame, requestAnimationFrame */
+
+const THREE = require('three');
 
 // from THREE.js
 function fovToNDCScaleOffset( fov ) {
@@ -83,17 +85,22 @@ function fovToProjection( fov, rightHanded, zNear, zFar ) {
 }
 
 class ThreeSixtyMedia {
-	constructor (container, video) {
+	constructor (container, media, opts) {
+
+		let video;
+		if (media.tagName === 'VIDEO') {
+			video = media;
+		}
 
 		let preserveDrawingBuffer = false;
 
 		this.buttonContainer = document.createElement('div');
 		this.buttonContainer.classList.add('button-container');
 
-		this.latOffset = container.dataset.oThreeSixtyMediaLat || 0;
-		this.longOffset = container.dataset.oThreeSixtyMediaLong || 0;
+		this.latOffset = opts.latOffset;
+		this.longOffset = opts.longOffset;
 
-		container.classList.add('three-sixty-video-container');
+		container.classList.add('o-three-sixty-container');
 
 		container.appendChild(this.buttonContainer);
 
@@ -187,35 +194,45 @@ class ThreeSixtyMedia {
 		this.addGeometry();
 
 		this.startAnimation();
-		if (video.readyState >= 2) {
-			this.loadVideoTexture();
-			this.addPlayButton();
-		} else {
-			video.addEventListener('canplay', function oncanplay() {
-				video.removeEventListener('canplay', oncanplay);
-				this.loadVideoTexture();
-				this.addPlayButton();
-			}.bind(this));
-		}
-
-		this.renderer.domElement.addEventListener('click', e => {
-			if (!this.hasVideoTexture) return;
-			e.preventDefault();
-			if (this.video.paused) {
-				this.updateTexture(this.videoTexture);
-				this.video.play();
-				this.removeButton(this.playButton);
-				this.playButton = null;
-			} else {
-				this.addPlayButton();
-				this.video.pause();
-			}
-		});
 
 		this.renderer.domElement.addEventListener('touchmove', e => {
 			e.preventDefault();
 			return false;
 		});
+
+		if (video) {
+			if (video.readyState >= 2) {
+				this.loadVideoTexture();
+				this.addPlayButton();
+			} else {
+				video.addEventListener('canplay', function oncanplay() {
+					video.removeEventListener('canplay', oncanplay);
+					this.loadVideoTexture();
+					this.addPlayButton();
+				}.bind(this));
+			}
+
+			let lastClick;
+
+			this.renderer.domElement.addEventListener('mousedown', () => {
+				lastClick = Date.now();
+			});
+
+			this.renderer.domElement.addEventListener('click', e => {
+				if (Date.now() - lastClick >= 300) return;
+				if (!this.hasVideoTexture) return;
+				e.preventDefault();
+				if (this.video.paused) {
+					this.updateTexture(this.videoTexture);
+					this.video.play();
+					this.removeButton(this.playButton);
+					this.playButton = null;
+				} else {
+					this.addPlayButton();
+					this.video.pause();
+				}
+			});
+		}
 	}
 
 	addPlayButton() {

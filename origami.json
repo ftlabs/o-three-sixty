@@ -1,11 +1,11 @@
 {
-	"description": "FT-branded tables",
+	"description": "Display 360 degree panoramic media from brightcove",
 	"origamiType": "module",
 	"origamiVersion": 1,
-	"support": "https://github.com/Financial-Times/o-table/issues",
+	"support": "https://github.com/Financial-Times/o-three-sixty/issues",
 	"supportStatus": "active",
 	"ci": {
-		"circle": "https://circleci.com/api/v1/project/Financial-Times/o-table"
+		"circle": "https://circleci.com/api/v1/project/Financial-Times/o-three-sixty"
 	},
 	"browserFeatures": {
 		"required": [
@@ -13,9 +13,8 @@
 		]
 	},
 	"demosDefaults": {
-		"js": "demos/src/demo.js",
-		"sass": "demos/src/demo.scss",
-		"dependencies": ["o-fonts@^2.0.0"]
+		"js": "./demos/src/demo.js",
+		"sass": "./main.scss"
 	},
 	"demos": [
 		{
@@ -23,45 +22,6 @@
 			"template": "demos/src/basic.mustache",
 			"expanded": true,
 			"description": ""
-		},
-		{
-			"name": "compact",
-			"template": "demos/src/basic.mustache",
-			"data": {
-				"modifierClass": "o-table--compact"
-			},
-			"expanded": false,
-			"description": ""
-		},
-		{
-			"name": "captions",
-			"template": "demos/src/captions.mustache",
-			"expanded": false,
-			"description": ""
-		},
-		{
-			"name": "responsive-flat",
-			"template": "demos/src/responsive-flat.mustache",
-			"expanded": false,
-			"description": "This is a flat responsive version"
-		},
-		{
-			"name": "responsive-overflow",
-			"template": "demos/src/responsive-overflow.mustache",
-			"data": {
-				"modifierClass": "o-table--responsive-overflow"
-			},
-			"expanded": false,
-			"description": "This is an overflow responsive version"
-		},
-		{
-			"name": "responsive-scroll",
-			"template": "demos/src/responsive-scroll.mustache",
-			"data": {
-				"modifierClass": "o-table--responsive-scroll"
-			},
-			"expanded": false,
-			"description": "This is a scrolling responsive version"
 		}
 	]
 }
