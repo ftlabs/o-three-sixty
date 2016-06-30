@@ -87,6 +87,8 @@ function fovToProjection( fov, rightHanded, zNear, zFar ) {
 class ThreeSixtyMedia {
 	constructor (container, media, opts) {
 
+		this.listeners = [];
+
 		let video;
 		if (media.tagName === 'VIDEO') {
 			video = media;
@@ -116,7 +118,7 @@ class ThreeSixtyMedia {
 			this.addButton('Full Screen', 'F', 'fullscreen', function () {
 				this.fullscreen.bind(this.container)();
 			});
-			document.addEventListener('fullscreenchange', function() {
+			this.addEventListener(document,'fullscreenchange', function() {
 				if ( document.isFullScreen ) {
 					if (document.fullscreenElement === this.container) {
 						setTimeout(() => this.resize(), 500);
@@ -129,7 +131,7 @@ class ThreeSixtyMedia {
 			this.addButton('Full Screen', 'F', 'fullscreen', function () {
 				this.fullscreen.bind(this.container)();
 			});
-			document.addEventListener('webkitfullscreenchange', function() {
+			this.addEventListener(document,'webkitfullscreenchange', function() {
 				if ( document.webkitIsFullScreen ) {
 					if (document.webkitFullscreenElement === this.container) {
 						setTimeout(() => this.resize(), 500);
@@ -142,7 +144,7 @@ class ThreeSixtyMedia {
 			this.addButton('Full Screen', 'F', 'fullscreen', function () {
 				this.fullscreen.bind(this.container)();
 			});
-			document.addEventListener('mozfullscreenchange', function() {
+			this.addEventListener(document,'mozfullscreenchange', function() {
 				if ( document.mozIsFullScreen ) {
 					if (document.mozFullscreenElement === this.container) {
 						setTimeout(() => this.resize(), 500);
@@ -160,7 +162,7 @@ class ThreeSixtyMedia {
 					this.vrDisplay = displays[0];
 					this.addButton('Reset', 'R', null, function () { this.vrDisplay.resetPose(); });
 					if (this.vrDisplay.capabilities.canPresent) this.vrPresentButton = this.addButton('Enter VR', 'E', 'cardboard-icon', this.onVRRequestPresent);
-					window.addEventListener('vrdisplaypresentchange', () => this.onVRPresentChange(), false);
+					this.addEventListener(window,'vrdisplaypresentchange', () => this.onVRPresentChange(), false);
 				}
 			});
 			preserveDrawingBuffer = true;
@@ -170,9 +172,6 @@ class ThreeSixtyMedia {
 			console.error('Your browser does not support WebVR. See <a href=\'http://webvr.info\'>webvr.info</a> for assistance.');
 		}
 
-		this.camera;
-		this.scene;
-		this.renderer;
 		this.vrDisplay = null;
 		this.vrPresentButton;
 		const rect = media.getBoundingClientRect();
@@ -196,7 +195,7 @@ class ThreeSixtyMedia {
 
 		this.startAnimation();
 
-		this.renderer.domElement.addEventListener('touchmove', e => {
+		this.addEventListener(this.renderer.domElement,'touchmove', e => {
 			e.preventDefault();
 			return false;
 		});
@@ -206,7 +205,7 @@ class ThreeSixtyMedia {
 				this.loadVideoTexture();
 				this.addPlayButton();
 			} else {
-				video.addEventListener('canplay', function oncanplay() {
+				this.addEventListener(video,'canplay', function oncanplay() {
 					video.removeEventListener('canplay', oncanplay);
 					this.loadVideoTexture();
 					this.addPlayButton();
@@ -215,11 +214,11 @@ class ThreeSixtyMedia {
 
 			let lastClick;
 
-			this.renderer.domElement.addEventListener('mousedown', () => {
+			this.addEventListener(this.renderer.domElement,'mousedown', () => {
 				lastClick = Date.now();
 			});
 
-			this.renderer.domElement.addEventListener('click', e => {
+			this.addEventListener(this.renderer.domElement,'click', e => {
 				if (Date.now() - lastClick >= 300) return;
 				if (!this.hasVideoTexture) return;
 				e.preventDefault();
@@ -244,6 +243,17 @@ class ThreeSixtyMedia {
 			if (this.hasVideoTexture) this.updateTexture(this.videoTexture);
 			this.video.play();
 			e.stopPropagation();
+		});
+	}
+
+	addEventListener(el, type, callback) {
+		this.listeners.push({el, type, callback});
+		el.addEventListener(type, callback);
+	}
+
+	removeAllEventListeners() {
+		this.listeners.forEach(function remove({el, type, callback}) {
+			el.removeEventListener(type, callback);
 		});
 	}
 
@@ -323,7 +333,9 @@ class ThreeSixtyMedia {
 
 	stopAnimation() {
 		cancelAnimationFrame(this.raf);
-		this.video.pause();
+		if (this.video) {
+			this.video.pause();
+		}
 	}
 
 	startAnimation() {
@@ -384,6 +396,13 @@ class ThreeSixtyMedia {
 		}
 	}
 
+	destroy() {
+		this.media.style.display = '';
+		this.stopAnimation();
+		this.removeAllEventListeners();
+		this.container.removeChild(this.buttonContainer);
+	}
+
 	onVRRequestPresent () {
 		this.vrDisplay.requestPresent([{ source: this.renderer.domElement }])
 		.then(() => {}, function () {
@@ -406,7 +425,7 @@ class ThreeSixtyMedia {
 		const button = document.createElement('button');
 		if (classname) button.classList.add(classname);
 		button.textContent = text;
-		button.addEventListener('click', callback.bind(this));
+		this.addEventListener(button,'click', callback.bind(this));
 		this.buttonContainer.appendChild(button);
 		return button;
 	}

@@ -41,18 +41,18 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 		if ((this.rootEl.dataset.oVideoSource || '').toLowerCase() === 'brightcove') {
 
 			// init o-video
-			this.mediaEl = document.createElement('div');
-			this.mediaEl.dataset.oComponent='o-video';
+			const oVideoWrapper = document.createElement('div');
+			oVideoWrapper.dataset.oComponent='o-video';
 
 			// Transfer o-video data
 			Object.keys(this.rootEl.dataset).forEach(k => {
 				if (k.indexOf('oVideo') === 0) {
-					this.mediaEl.dataset[k] = this.rootEl.dataset[k];
+					oVideoWrapper.dataset[k] = this.rootEl.dataset[k];
 					delete this.rootEl.dataset[k];
 				}
 			});
 
-			this.rootEl.appendChild(this.mediaEl);
+			this.rootEl.appendChild(oVideoWrapper);
 			opts.context = this.rootEl;
 			return oVideo.init(opts)
 			.then(oV => this.oVideo=oV);
@@ -81,10 +81,21 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 			console.log('360 Video handled natively');
 		} else {
 			// use it to instantiate new ThreeSixtyMedia
-			new ThreeSixtyMedia(this.rootEl, this.media, opts);
+			this.threeSixtyMedia = new ThreeSixtyMedia(this.rootEl, this.media, opts);
 		}
 
 	});
+}
+
+OThreeSixty.prototype.destroy = function destroy() {
+	if (!this.oVideo && this.media) {
+		this.rootEl.parentNode.insertBefore(this.media, this.rootEl);
+	}
+	if (this.threeSixtyMedia) this.threeSixtyMedia.destroy();
+	this.rootEl.parentNode.removeChild(this.rootEl);
+	delete this.rootEl;
+	delete this.media;
+	delete this.threeSixtyMedia;
 }
 
 const constructAll = function() {
