@@ -18,10 +18,16 @@
 	},
 	"demos": [
 		{
-			"name": "basic",
-			"template": "demos/src/basic.mustache",
+			"name": "o-video",
+			"template": "demos/src/o-video.mustache",
 			"expanded": true,
-			"description": ""
+			"description": "Showing 360 video content from o-video"
+		},
+		{
+			"name": "img",
+			"template": "demos/src/img.mustache",
+			"expanded": true,
+			"description": "Showing 360 a 360 image from an image element."
 		}
 	]
 }
