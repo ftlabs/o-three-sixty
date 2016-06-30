@@ -39,8 +39,8 @@ function OThreeSixty(rootEl, opts) {
 OThreeSixty.prototype.init = function init(opts = {}) {
 
 
-	opts.latOffset = this.rootEl.dataset.oThreeSixtyMediaLat || 0;
-	opts.longOffset = this.rootEl.dataset.oThreeSixtyMediaLong || 0;
+	opts.latOffset = this.rootEl.dataset.oThreeSixtyLat || 0;
+	opts.longOffset = this.rootEl.dataset.oThreeSixtyLong || 0;
 
 	Promise.resolve()
 	.then(() => {

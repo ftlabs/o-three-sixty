@@ -90,6 +90,7 @@ class ThreeSixtyMedia {
 		let video;
 		if (media.tagName === 'VIDEO') {
 			video = media;
+			this.video = video;
 		}
 
 		let preserveDrawingBuffer = false;
@@ -174,9 +175,9 @@ class ThreeSixtyMedia {
 		this.renderer;
 		this.vrDisplay = null;
 		this.vrPresentButton;
-		const rect = video.getBoundingClientRect();
-		video.style.display = 'none';
-		this.video = video;
+		const rect = media.getBoundingClientRect();
+		media.style.display = 'none';
+		this.media = media;
 
 		this.camera = new THREE.PerspectiveCamera( 90, rect.width / rect.height, 1, 10000 );
 		this.camera.up.set( 0, 0, 1 );
@@ -271,7 +272,7 @@ class ThreeSixtyMedia {
 			throw Error('Geometery already set up');
 		}
 
-		const poster = this.video.getAttribute('poster');
+		const poster = this.video ? this.video.getAttribute('poster') : this.media.src;
 		if (poster) {
 			const loader = new THREE.TextureLoader();
 			loader.crossOrigin = 'Anonymous';
@@ -315,8 +316,8 @@ class ThreeSixtyMedia {
 				window.innerHeight
 			);
 		} else {
-			this.camera.aspect = this.video.width / this.video.height;
-			this.renderer.setSize( this.video.width, this.video.height );
+			this.camera.aspect = this.media.width / this.media.height;
+			this.renderer.setSize( this.media.width, this.media.height );
 		}
 	}
 

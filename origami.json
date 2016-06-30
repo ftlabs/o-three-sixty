@@ -27,7 +27,13 @@
 			"name": "img",
 			"template": "demos/src/img.mustache",
 			"expanded": true,
-			"description": "Showing 360 a 360 image from an image element."
+			"description": "Showing a 360 image from an image element."
+		},
+		{
+			"name": "video",
+			"template": "demos/src/video.mustache",
+			"expanded": true,
+			"description": "Showing a 360 video from a video element."
 		}
 	]
 }
