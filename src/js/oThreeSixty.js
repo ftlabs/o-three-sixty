@@ -12,12 +12,6 @@ global document, HTMLElement
 const oVideo = require('o-video');
 const ThreeSixtyMedia = require('./three-sixty');
 
-function wrapElement(targetEl, wrapEl) {
-	const parentEl = targetEl.parentNode;
-	parentEl.insertBefore(wrapEl, targetEl);
-	wrapEl.appendChild(targetEl);
-}
-
 function OThreeSixty(rootEl, opts) {
 
 	if (!rootEl) {
@@ -47,11 +41,18 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 		if (this.rootEl.dataset.oVideoSource === 'Brightcove') {
 
 			// init o-video
-			const mediaEl = this.rootEl;
-			this.rootEl = document.createElement('div');
-			mediaEl.dataset.oComponent='o-video';
-			this.rootEl.dataset.oComponent='o-three-sixty';
-			wrapElement(mediaEl, this.rootEl);
+			this.mediaEl = document.createElement('div');
+			this.mediaEl.dataset.oComponent='o-video';
+
+			// Transfer o-video data
+			Object.keys(this.rootEl.dataset).forEach(k => {
+				if (k.indexOf("oVideo") === 0) {
+					this.mediaEl.dataset[k] = this.rootEl.dataset[k];
+					delete this.rootEl.dataset[k];
+				}
+			});
+
+			this.rootEl.appendChild(this.mediaEl);
 			opts.context = this.rootEl;
 			return oVideo.init(opts)
 			.then(oV => this.oVideo=oV);
