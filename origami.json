@@ -3,7 +3,7 @@
 	"origamiType": "module",
 	"origamiVersion": 1,
 	"support": "https://github.com/Financial-Times/o-three-sixty/issues",
-	"supportStatus": "active",
+	"supportStatus": "experimental",
 	"ci": {
 		"circle": "https://circleci.com/api/v1/project/Financial-Times/o-three-sixty"
 	},
