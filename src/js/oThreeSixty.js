@@ -6,8 +6,9 @@
  */
 
  /*
-global document, HTMLElement
+global document, HTMLElement, navigator
  */
+'use strict';
 
 const oVideo = require('o-video');
 const ThreeSixtyMedia = require('./three-sixty');
@@ -19,7 +20,7 @@ function OThreeSixty(rootEl, opts) {
 	} else if (!(rootEl instanceof HTMLElement)) {
 		rootEl = document.querySelector(rootEl);
 	}
-	if (rootEl.getAttribute('data-o-component') === "o-three-sixty") {
+	if (rootEl.getAttribute('data-o-component') === 'o-three-sixty') {
 		this.rootEl = rootEl;
 	} else {
 		this.rootEl = rootEl.querySelector('[data-o-component~="o-three-sixty"]');
@@ -32,13 +33,12 @@ function OThreeSixty(rootEl, opts) {
 
 OThreeSixty.prototype.init = function init(opts = {}) {
 
-
-	opts.latOffset = this.rootEl.dataset.oThreeSixtyLat || 0;
-	opts.longOffset = this.rootEl.dataset.oThreeSixtyLong || 0;
+	opts.latOffset = opts.latOffset || this.rootEl.dataset.oThreeSixtyLat || 0;
+	opts.longOffset = opts.longOffset || this.rootEl.dataset.oThreeSixtyLong || 0;
 
 	Promise.resolve()
 	.then(() => {
-		if (this.rootEl.dataset.oVideoSource === 'Brightcove') {
+		if ((this.rootEl.dataset.oVideoSource || '').toLowerCase() === 'brightcove') {
 
 			// init o-video
 			this.mediaEl = document.createElement('div');
@@ -46,7 +46,7 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 
 			// Transfer o-video data
 			Object.keys(this.rootEl.dataset).forEach(k => {
-				if (k.indexOf("oVideo") === 0) {
+				if (k.indexOf('oVideo') === 0) {
 					this.mediaEl.dataset[k] = this.rootEl.dataset[k];
 					delete this.rootEl.dataset[k];
 				}
