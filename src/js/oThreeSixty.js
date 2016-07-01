@@ -81,6 +81,10 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 			media.setAttribute('type', type + ';dimension=360;');
 		}
 
+		if (media.tagName === 'VIDEO') {
+			media.setAttribute('webkit-playsinline', '')
+		}
+
 		this.media = media;
 
 		if (navigator.userAgent.match(/samsung.* mobile vr/ig)) {
