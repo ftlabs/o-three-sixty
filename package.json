@@ -20,9 +20,5 @@
   "private": true,
   "scripts": {
     "test": "./node_modules/karma/bin/karma start karma.conf.js"
-  },
-  "dependencies": {
-    "three": "^0.78.0",
-    "webvr-polyfill": "^0.9.15"
   }
 }

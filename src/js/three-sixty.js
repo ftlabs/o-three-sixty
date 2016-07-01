@@ -1,7 +1,9 @@
 'use strict';
-/* global document, navigator, window, cancelAnimationFrame, requestAnimationFrame */
+/* global document, navigator, window, cancelAnimationFrame, requestAnimationFrame, THREE */
 
-const THREE = require('three');
+let rotWorldMatrix;
+let yAxis;
+let zAxis;
 
 // from THREE.js
 function fovToNDCScaleOffset( fov ) {
@@ -59,9 +61,6 @@ function fovPortToProjection( fov, rightHanded, zNear, zFar ) {
 	return mobj;
 }
 
-const rotWorldMatrix = new THREE.Matrix4();
-const yAxis = new THREE.Vector3(0,1,0);
-const zAxis = new THREE.Vector3(0,0,1);
 function rotateAroundWorldAxis(object, axis, radians) {
     rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
     rotWorldMatrix.multiply(object.matrix);
@@ -86,6 +85,16 @@ function fovToProjection( fov, rightHanded, zNear, zFar ) {
 
 class ThreeSixtyMedia {
 	constructor (container, media, opts) {
+
+		if (!THREE) {
+			throw Error('Threee.js required.');
+		}
+
+		if (!rotWorldMatrix) {
+			rotWorldMatrix = new THREE.Matrix4();
+			yAxis = new THREE.Vector3(0,1,0);
+			zAxis = new THREE.Vector3(0,0,1);
+		}
 
 		this.listeners = [];
 

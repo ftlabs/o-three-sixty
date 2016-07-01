@@ -98,12 +98,4 @@ OThreeSixty.prototype.destroy = function destroy() {
 	delete this.threeSixtyMedia;
 }
 
-const constructAll = function() {
-	[].slice.call(document.querySelectorAll('[data-o-component~="o-three-sixty"]')).forEach(function (el) {
-		new OThreeSixty(el);
-	});
-	document.removeEventListener('o.DOMContentLoaded', constructAll);
-};
-document.addEventListener('o.DOMContentLoaded', constructAll);
-
 module.exports = OThreeSixty;
