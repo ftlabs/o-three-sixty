@@ -26,7 +26,7 @@ function addScript (url) {
 
 OThreeSixty.addScripts = function () {
 	return Promise.all([
-		addScript('https://cdn.rawgit.com/borismus/webvr-polyfill/v1.0.0/build/webvr-polyfill.js').promise,
+		addScript('https://cdn.rawgit.com/borismus/webvr-polyfill/v0.9.15/build/webvr-polyfill.js').promise,
 		addScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js').promise
 	]);
 }

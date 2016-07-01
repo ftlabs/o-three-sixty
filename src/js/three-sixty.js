@@ -183,11 +183,10 @@ class ThreeSixtyMedia {
 
 		this.vrDisplay = null;
 		this.vrPresentButton;
-		const rect = media.getBoundingClientRect();
 		media.style.display = 'none';
 		this.media = media;
 
-		this.camera = new THREE.PerspectiveCamera( 90, rect.width / rect.height, 1, 10000 );
+		this.camera = new THREE.PerspectiveCamera( 90, this.media.width / this.media.height, 1, 10000 );
 		this.camera.up.set( 0, 0, 1 );
 		this.scene = new THREE.Scene();
 		this.orientation = new THREE.Quaternion([0,0,0,1]);
@@ -195,10 +194,11 @@ class ThreeSixtyMedia {
 		const renderer = new THREE.WebGLRenderer( { antialias: false, preserveDrawingBuffer } );
 		renderer.context.disable(renderer.context.DEPTH_TEST);
 		renderer.setPixelRatio(Math.floor(window.devicePixelRatio));
-		renderer.setSize( rect.width, rect.height );
 		renderer.autoClear = false;
 		container.appendChild( renderer.domElement );
 		this.renderer = renderer;
+
+		setTimeout(this.resize.bind(this), 100);
 
 		this.addGeometry();
 
@@ -319,15 +319,13 @@ class ThreeSixtyMedia {
 
 		if (this.vrDisplay && this.vrDisplay.isPresenting) {
 
-			this.camera.aspect = window.innerWidth / window.innerHeight;
-
 			const leftEye = this.vrDisplay.getEyeParameters('left');
 			const rightEye = this.vrDisplay.getEyeParameters('right');
 
-			this.renderer.setSize(
-				Math.max(leftEye.renderWidth, rightEye.renderWidth) * 2,
-				Math.max(leftEye.renderHeight, rightEye.renderHeight)
-			);
+			const w = Math.max(leftEye.renderWidth, rightEye.renderWidth) * 2;
+			const h = Math.max(leftEye.renderHeight, rightEye.renderHeight);
+			this.camera.aspect = w/h;
+			this.renderer.setSize(w, h);
 		} else if (document.isFullScreen || document.webkitIsFullScreen || document.mozIsFullScreen) {
 			this.camera.aspect = window.innerWidth / window.innerHeight;
 			this.renderer.setSize(
@@ -338,6 +336,7 @@ class ThreeSixtyMedia {
 			this.camera.aspect = this.media.width / this.media.height;
 			this.renderer.setSize( this.media.width, this.media.height );
 		}
+		this.camera.updateProjectionMatrix();
 	}
 
 	stopAnimation() {
@@ -413,7 +412,7 @@ class ThreeSixtyMedia {
 	}
 
 	onVRRequestPresent () {
-		this.vrDisplay.requestPresent([{ source: this.renderer.domElement }])
+		this.vrDisplay.requestPresent({ source: this.renderer.domElement })
 		.then(() => {}, function () {
 			console.error('requestPresent failed.', 2000);
 		});
