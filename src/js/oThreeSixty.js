@@ -55,7 +55,13 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 			this.rootEl.appendChild(oVideoWrapper);
 			opts.context = this.rootEl;
 			return oVideo.init(opts)
-			.then(oV => this.oVideo=oV);
+			.then(oV => this.oVideo=oV)
+			.then(() => {
+				const media = this.rootEl.querySelector('video');
+				if (!media) throw Error('No video element found');
+				media.width = media.clientWidth;
+				media.height = media.clientHeight;
+			});
 		}
 	})
 	.then(() => {
