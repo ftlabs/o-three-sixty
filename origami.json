@@ -32,6 +32,12 @@
 			"name": "video",
 			"template": "demos/src/video.mustache",
 			"description": "Showing a 360 video from a video element."
+		},
+		{
+			"name": "img-buttons",
+			"template": "demos/src/img-buttons.mustache",
+			"description": "Instantiate with JS, and add buttons for interactivity.",
+			"js": "./demos/src/demo-img-buttons.js"
 		}
 	]
 }
