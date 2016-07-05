@@ -1,9 +1,15 @@
 'use strict';
 /* global document, navigator, window, cancelAnimationFrame, requestAnimationFrame, THREE */
 
+const throttle = require('lodash/function/throttle');
+const spriteScale = 0.01;
+const DEG2RAD = Math.PI / 180.0;
 let rotWorldMatrix;
+let xAxis;
 let yAxis;
 let zAxis;
+
+function noop() {}
 
 // from THREE.js
 function fovToNDCScaleOffset( fov ) {
@@ -71,8 +77,6 @@ function rotateAroundWorldAxis(object, axis, radians) {
 // from THREE.js
 function fovToProjection( fov, rightHanded, zNear, zFar ) {
 
-	const DEG2RAD = Math.PI / 180.0;
-
 	const fovPort = {
 		upTan: Math.tan( fov.upDegrees * DEG2RAD ),
 		downTan: Math.tan( fov.downDegrees * DEG2RAD ),
@@ -92,6 +96,7 @@ class ThreeSixtyMedia {
 
 		if (!rotWorldMatrix) {
 			rotWorldMatrix = new THREE.Matrix4();
+			xAxis = new THREE.Vector3(1,0,0);
 			yAxis = new THREE.Vector3(0,1,0);
 			zAxis = new THREE.Vector3(0,0,1);
 		}
@@ -110,67 +115,20 @@ class ThreeSixtyMedia {
 		this.buttonContainer.classList.add('button-container');
 
 		this.latOffset = opts.latOffset;
-		this.longOffset = opts.longOffset;
 
 		container.classList.add('o-three-sixty-container');
 
 		container.appendChild(this.buttonContainer);
 
 		this.container = container;
-		this.fullscreen = this.container.requestFullscreen || this.container.mozRequestFullscreen || this.container.webkitRequestFullscreen;
-
-		this.addButton('Exit Fullscreen', null, 'exit-fullscreen', function () {
-			(document.exitFullscreen || document.mozExitFullscreen || document.webkitExitFullscreen).bind(document)();
-		});
-
-		if (document.isFullScreen !== undefined) {
-			this.addButton('Full Screen', 'F', 'fullscreen', function () {
-				this.fullscreen.bind(this.container)();
-			});
-			this.addEventListener(document,'fullscreenchange', function() {
-				if ( document.isFullScreen ) {
-					if (document.fullscreenElement === this.container) {
-						setTimeout(() => this.resize(), 500);
-					}
-				} else {
-					setTimeout(() => this.resize(), 500);
-				}
-			}.bind(this));
-		} else if (document.webkitIsFullScreen !== undefined) {
-			this.addButton('Full Screen', 'F', 'fullscreen', function () {
-				this.fullscreen.bind(this.container)();
-			});
-			this.addEventListener(document,'webkitfullscreenchange', function() {
-				if ( document.webkitIsFullScreen ) {
-					if (document.webkitFullscreenElement === this.container) {
-						setTimeout(() => this.resize(), 500);
-					}
-				} else {
-					setTimeout(() => this.resize(), 500);
-				}
-			}.bind(this));
-		} else if (document.mozIsFullScreen !== undefined) {
-			this.addButton('Full Screen', 'F', 'fullscreen', function () {
-				this.fullscreen.bind(this.container)();
-			});
-			this.addEventListener(document,'mozfullscreenchange', function() {
-				if ( document.mozIsFullScreen ) {
-					if (document.mozFullscreenElement === this.container) {
-						setTimeout(() => this.resize(), 500);
-					}
-				} else {
-					setTimeout(() => this.resize(), 500);
-				}
-			}.bind(this));
-		}
 
 		if (navigator.getVRDisplays) {
 			navigator.getVRDisplays()
 			.then(displays => {
 				if (displays.length > 0) {
 					this.vrDisplay = displays[0];
-					this.addButton('Reset', 'R', null, function () { this.vrDisplay.resetPose(); });
-					if (this.vrDisplay.capabilities.canPresent) this.vrPresentButton = this.addButton('Enter VR', 'E', 'cardboard-icon', this.onVRRequestPresent);
+					this.addUiButton('Reset', 'R', null, function () { this.vrDisplay.resetPose(); });
+					if (this.vrDisplay.capabilities.canPresent) this.vrPresentButton = this.addUiButton('Enter VR', 'E', 'cardboard-icon', this.onVRRequestPresent);
 					this.addEventListener(window,'vrdisplaypresentchange', () => this.onVRPresentChange(), false);
 				}
 			});
@@ -190,6 +148,7 @@ class ThreeSixtyMedia {
 		this.camera.up.set( 0, 0, 1 );
 		this.scene = new THREE.Scene();
 		this.orientation = new THREE.Quaternion([0,0,0,1]);
+		this.textureLoader = new THREE.TextureLoader();
 
 		const renderer = new THREE.WebGLRenderer( { antialias: false, preserveDrawingBuffer } );
 		renderer.context.disable(renderer.context.DEPTH_TEST);
@@ -199,6 +158,8 @@ class ThreeSixtyMedia {
 		this.renderer = renderer;
 
 		setTimeout(this.resize.bind(this), 100);
+
+		this.addFullscreenButton();
 
 		this.addGeometry();
 
@@ -244,15 +205,163 @@ class ThreeSixtyMedia {
 		}
 	}
 
+	addSpriteButton({
+		image,
+		width,
+		height,
+		callback=noop
+	}) {
+		if (this.buttons === undefined) {
+			this.buttons = [];
+		}
+		if (this.buttonArea === undefined) {
+			const buttonArea = new THREE.Object3D();
+			buttonArea.position.set(0, -2, 0);
+			this.scene.add(buttonArea);
+			this.buttonArea = buttonArea;
+			buttonArea.goalRotationY = 0;
+			buttonArea.checkInRange = throttle(() => {
+				const v = new THREE.Vector3(0, 0, -1);
+				v.applyQuaternion(this.camera.quaternion);
+				v.projectOnPlane(yAxis);
+				const angle = -Math.PI/2 - Math.atan2(v.z, v.x);
+				if (Math.abs(buttonArea.goalRotationY - angle) > Math.PI/4) {
+					buttonArea.goalRotationY = angle;
+				}
+			}, 500, {leading: true});
+		}
+
+		const imageDetails = {
+			width,
+			height,
+			url: image,
+			events: null,
+			object: null,
+		}
+
+		this.buttons.push(imageDetails);
+
+		this.layoutSpriteButtons();
+
+		this.textureLoader.load(
+			image,
+			map => {
+				const material = new THREE.MeshBasicMaterial({
+					map: map,
+					color: 0xffffff,
+					fog: false,
+					transparent: true
+				});
+				const sprite = new THREE.Mesh(
+					new THREE.PlaneGeometry(width,height),
+					material
+				);
+				imageDetails.sprite = sprite;
+				sprite.position.z = -5;
+				sprite.scale.set(spriteScale, spriteScale, spriteScale);
+				this.buttonArea.add(sprite);
+				this.layoutSpriteButtons();
+				callback(sprite);
+			}
+		);
+	}
+
+	layoutSpriteButtons() {
+		let offset = 0;
+		let length = this.buttons.reduce((a,b) => a + b.width, 0);
+		for (const iD of this.buttons) {
+			if (iD.sprite) {
+				iD.sprite.position.x = (iD.width/2 + offset - length/2) * spriteScale;
+			}
+			offset += iD.width;
+		}
+	}
+
+	addReticule({
+		image,
+		callback=noop
+	}) {
+		if (this.hud === undefined) {
+			const hud = new THREE.Object3D();
+			hud.position.set(0, 0, -2.1);
+			hud.scale.set(0.1, 0.1, 0.1);
+			this.camera.add(hud);
+			this.scene.add(this.camera); // add the camera to the scene so that the hud is rendered
+			this.hud = hud;
+		}
+
+		this.textureLoader.load(
+			image,
+			map => {
+				const material = new THREE.SpriteMaterial( { map: map, color: 0xffffff, fog: false, transparent: true } );
+				const sprite = new THREE.Sprite(material);
+				this.hud.add(sprite);
+				callback(sprite);
+			}
+		);
+	}
+
 	addPlayButton() {
 		if (this.playButton) return;
-		this.playButton = this.addButton('Play', 'space', 'play-icon', e => {
-			this.removeButton(this.playButton);
-			this.playButton = null;
-			if (this.hasVideoTexture) this.updateTexture(this.videoTexture);
-			this.video.play();
-			e.stopPropagation();
+		this.playButton = this.addUiButton('Play', 'space', 'play-icon', e => {
+				this.removeButton(this.playButton);
+				this.playButton = null;
+				if (this.hasVideoTexture) this.updateTexture(this.videoTexture);
+				this.video.play();
+				e.stopPropagation();
+			}
+		);
+	}
+
+	addFullscreenButton() {
+
+		const fullscreen = this.container.requestFullscreen || this.container.mozRequestFullscreen || this.container.webkitRequestFullscreen;
+
+		this.addUiButton('Exit Fullscreen', null, 'exit-fullscreen', function () {
+			(document.exitFullscreen || document.mozExitFullscreen || document.webkitExitFullscreen).bind(document)();
 		});
+
+		if (document.isFullScreen !== undefined) {
+			this.addUiButton('Full Screen', 'F', 'fullscreen', function () {
+				this.fullscreen.bind(this.container)();
+			});
+			this.addEventListener(document,'fullscreenchange', function() {
+				if ( document.isFullScreen ) {
+					if (document.fullscreenElement === this.container) {
+						setTimeout(() => this.resize(), 500);
+					}
+				} else {
+					setTimeout(() => this.resize(), 500);
+				}
+			}.bind(this));
+		} else if (document.webkitIsFullScreen !== undefined) {
+			this.addUiButton('Full Screen', 'F', 'fullscreen', function () {
+				this.fullscreen.bind(this.container)();
+			});
+			this.addEventListener(document,'webkitfullscreenchange', function() {
+				if ( document.webkitIsFullScreen ) {
+					if (document.webkitFullscreenElement === this.container) {
+						setTimeout(() => this.resize(), 500);
+					}
+				} else {
+					setTimeout(() => this.resize(), 500);
+				}
+			}.bind(this));
+		} else if (document.mozIsFullScreen !== undefined) {
+			this.addUiButton('Full Screen', 'F', 'fullscreen', function () {
+				this.fullscreen.bind(this.container)();
+			});
+			this.addEventListener(document,'mozfullscreenchange', function() {
+				if ( document.mozIsFullScreen ) {
+					if (document.mozFullscreenElement === this.container) {
+						setTimeout(() => this.resize(), 500);
+					}
+				} else {
+					setTimeout(() => this.resize(), 500);
+				}
+			}.bind(this));
+		}
+
 	}
 
 	addEventListener(el, type, callback) {
@@ -293,9 +402,7 @@ class ThreeSixtyMedia {
 
 		const poster = this.video ? this.video.getAttribute('poster') : this.media.src;
 		if (poster) {
-			const loader = new THREE.TextureLoader();
-			loader.crossOrigin = 'Anonymous';
-			loader.load(
+			this.textureLoader.load(
 				poster,
 				t => (!this.hasVideoTexture || this.currentTexture !== this.videoTexture) && this.updateTexture(t)
 			);
@@ -309,8 +416,7 @@ class ThreeSixtyMedia {
 		geometry.applyMatrix(mS);
 
 		const sphere = new THREE.Mesh( geometry, material );
-		rotateAroundWorldAxis(sphere, zAxis, -this.longOffset);
-		rotateAroundWorldAxis(sphere, yAxis, -this.latOffset);
+		rotateAroundWorldAxis(sphere, yAxis, -this.latOffset * DEG2RAD);
 		this.sphere = sphere;
 		this.scene.add( sphere );
 	}
@@ -363,6 +469,7 @@ class ThreeSixtyMedia {
 		this.camera.position.fromArray(position);
 		this.orientation.set(...orientation);
 		this.camera.rotation.setFromQuaternion(this.orientation, 'XZY');
+
 		if (eye) {
 			this.camera.projectionMatrix = fovToProjection(eye.fieldOfView, true, this.camera.near, this.camera.far );
 			this.camera.position.add(new THREE.Vector3(...eye.offset));
@@ -376,6 +483,13 @@ class ThreeSixtyMedia {
 
 	render() {
 		this.renderer.clear();
+
+
+		if (this.buttonArea) {
+			this.buttonArea.checkInRange();
+			this.buttonArea.rotation.y = (this.buttonArea.rotation.y + this.buttonArea.goalRotationY)/2;
+		}
+
 		if (this.vrDisplay) {
 			const pose = this.vrDisplay.getPose();
 			if (this.vrDisplay.isPresenting) {
@@ -429,7 +543,7 @@ class ThreeSixtyMedia {
 		this.resize();
 	}
 
-	addButton(text, shortcut, classname, callback) {
+	addUiButton(text, shortcut, classname, callback) {
 		const button = document.createElement('button');
 		if (classname) button.classList.add(classname);
 		button.textContent = text;

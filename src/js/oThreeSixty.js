@@ -34,9 +34,9 @@ function OThreeSixty(rootEl, opts) {
 OThreeSixty.prototype.init = function init(opts = {}) {
 
 	opts.latOffset = opts.latOffset || this.rootEl.dataset.oThreeSixtyLat || 0;
-	opts.longOffset = opts.longOffset || this.rootEl.dataset.oThreeSixtyLong || 0;
+	opts.reticule = opts.reticule || this.rootEl.dataset.oThreeSixtyReticule || "";
 
-	Promise.resolve()
+	this.webglPromise = Promise.resolve()
 	.then(() => {
 		if ((this.rootEl.dataset.oVideoSource || '').toLowerCase() === 'brightcove') {
 
@@ -88,13 +88,26 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 		this.media = media;
 
 		if (navigator.userAgent.match(/samsung.* mobile vr/ig)) {
-			console.log('360 Video handled natively');
+			throw Error('360 Video handled natively');
 		} else {
+
 			// use it to instantiate new ThreeSixtyMedia
 			this.threeSixtyMedia = new ThreeSixtyMedia(this.rootEl, this.media, opts);
+
+			if (opts.reticule) {
+				this.threeSixtyMedia.addReticule({
+					image: opts.reticule
+				});
+			}
+
+			return this.threeSixtyMedia;
 		}
 
 	});
+}
+
+OThreeSixty.prototype.addButton = function addButton(opts) {
+	this.webglPromise.then(() => this.threeSixtyMedia.addSpriteButton(opts));
 }
 
 OThreeSixty.prototype.destroy = function destroy() {
