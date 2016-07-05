@@ -4,8 +4,8 @@
     "o-video": "^0.3.0",
     "o-buttons": "^4.0.1",
     "o-icons": "^4.2.0",
-    "lodash": "https://github.com/lodash/lodash.git#4.12.0-npm-packages",
-    "qrious": "qr-js#^2.0.1"
+    "qrious": "qr-js#^2.0.1",
+    "o-viewport": "^2.2.0"
   },
   "main": [
     "main.scss",
