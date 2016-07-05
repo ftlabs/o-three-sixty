@@ -1,7 +1,7 @@
 'use strict';
 /* global document, navigator, window, cancelAnimationFrame, requestAnimationFrame, THREE */
 
-const throttle = require('o-viewport/src/utils');
+const throttle = require('o-viewport/src/utils').throttle;
 const spriteScale = 0.05;
 const DEG2RAD = Math.PI / 180.0;
 const CameraInteractivityWorld = require('./camera-interactivity.js');

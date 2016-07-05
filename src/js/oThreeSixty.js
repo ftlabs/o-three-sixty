@@ -23,7 +23,10 @@ function OThreeSixty(rootEl, opts) {
 	if (rootEl.getAttribute('data-o-component') === 'o-three-sixty') {
 		this.rootEl = rootEl;
 	} else {
-		this.rootEl = rootEl.querySelector('[data-o-component~="o-three-sixty"]');
+		this.rootEl = rootEl.querySelector('[data-o-component~="o-three-sixty"]') || rootEl;
+	}
+	if (rootEl.querySelector('canvas')) {
+		throw Error('OThreeSixty already instantiated on element. Canvas already present.');
 	}
 
 	if (this.rootEl !== undefined) {
