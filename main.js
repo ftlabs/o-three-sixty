@@ -24,10 +24,20 @@ function addScript (url) {
 	return promiseScript;
 }
 
+let threePromise;
+if (window.THREE) {
+	if (window.THREE.REVISION !== '78') {
+		throw Error('Wrong version of three present');
+	}
+	threePromise = Promise.resolve();
+} else {
+	threePromise = addScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js').promise;
+}
+
 OThreeSixty.addScripts = function () {
 	return Promise.all([
 		addScript('https://cdn.rawgit.com/borismus/webvr-polyfill/v0.9.15/build/webvr-polyfill.js').promise,
-		addScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r78/three.min.js').promise
+		threePromise
 	]);
 }
 
