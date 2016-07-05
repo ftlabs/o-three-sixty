@@ -34,7 +34,7 @@ function OThreeSixty(rootEl, opts) {
 OThreeSixty.prototype.init = function init(opts = {}) {
 
 	opts.latOffset = opts.latOffset || this.rootEl.dataset.oThreeSixtyLat || 0;
-	opts.reticule = opts.reticule || this.rootEl.dataset.oThreeSixtyReticule || "";
+	opts.reticule = opts.reticule || this.rootEl.dataset.oThreeSixtyReticule || '';
 
 	this.webglPromise = Promise.resolve()
 	.then(() => {
@@ -107,7 +107,7 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 }
 
 OThreeSixty.prototype.addButton = function addButton(opts) {
-	this.webglPromise.then(() => this.threeSixtyMedia.addSpriteButton(opts));
+	return this.webglPromise.then(() => this.threeSixtyMedia.addSpriteButton(opts));
 }
 
 OThreeSixty.prototype.destroy = function destroy() {

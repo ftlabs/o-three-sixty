@@ -7,14 +7,14 @@
  */
 
  /*
-global document, HTMLElement, navigator, THREE
+global THREE
  */
 'use strict';
 
-const EventEmitter = require('event-emitter');
-const util = require('util');
+const EventEmitter = require('events');
 
-const visibleFilter = target => target.object3d.visible
+const visibleFilter = object3d => object3d.visible
+const getObject = target => target.object3d
 
 /**
  * Keeps track of interactive 3D elements and
@@ -31,43 +31,43 @@ module.exports = function CameraInteractivityWorld(domElement, threeOverride) {
 
 	if (!THREE_IN) throw Error('No Three Library Detected');
 
-	function InteractivityTarget(node) {
+	class InteractivityTarget extends EventEmitter {
 
-		EventEmitter.call(this);
-
-		this.position = node.position;
-		this.hasHover = false;
-		this.object3d = node;
-
-		this.on('hover', () => {
-			if (!this.hasHover) {
-				this.emit('hoverStart');
-			}
-			this.hasHover = true;
-		});
-
-		this.on('hoverOut', () => {
+		constructor(node) {
+			super();
+			this.position = node.position;
 			this.hasHover = false;
-		});
+			this.object3d = node;
 
-		this.hide = () =>{
+			this.on('hover', () => {
+				if (!this.hasHover) {
+					this.emit('hoverStart');
+				}
+				this.hasHover = true;
+			});
+
+			this.on('hoverEnd', () => {
+				this.hasHover = false;
+			});
+		}
+
+		hide() {
 			this.object3d.visible = false;
-		};
+		}
 
-		this.show = () =>{
+		show () {
 			this.object3d.visible = true;
-		};
+		}
 	}
-	util.inherits(InteractivityTarget, EventEmitter);
 
 	this.targets = new Map();
 
+	const raycaster = new THREE_IN.Raycaster();
 	this.detectInteractions = function (camera) {
 
 		const targets = Array.from(this.targets.values());
-		const raycaster = new THREE_IN.Raycaster();
 		raycaster.setFromCamera(new THREE_IN.Vector2(0,0), camera);
-		const hits = raycaster.intersectObjects(targets.filter(visibleFilter));
+		const hits = raycaster.intersectObjects(targets.map(getObject).filter(visibleFilter));
 		let target = false;
 
 		if (hits.length) {
@@ -80,7 +80,7 @@ module.exports = function CameraInteractivityWorld(domElement, threeOverride) {
 		// if it is not the one just marked for highlight
 		// and it used to be highlighted un highlight it.
 		for (const t of targets) {
-			if (t !== target && t.hasHover) t.emit('hoverOut');
+			if (t !== target && t.hasHover) t.emit('hoverEnd');
 		}
 	};
 

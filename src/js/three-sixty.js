@@ -4,6 +4,7 @@
 const throttle = require('lodash/function/throttle');
 const spriteScale = 0.01;
 const DEG2RAD = Math.PI / 180.0;
+const CameraInteractivityWorld = require('./camera-interactivity.js');
 let rotWorldMatrix;
 let xAxis;
 let yAxis;
@@ -157,6 +158,8 @@ class ThreeSixtyMedia {
 		container.appendChild( renderer.domElement );
 		this.renderer = renderer;
 
+		this.cameraInteractivityWorld = new CameraInteractivityWorld(renderer.domElement, THREE);
+
 		setTimeout(this.resize.bind(this), 100);
 
 		this.addFullscreenButton();
@@ -230,6 +233,9 @@ class ThreeSixtyMedia {
 				}
 			}, 500, {leading: true});
 		}
+		if (this.interactivityCheck === undefined) {
+			this.interactivityCheck = () => this.cameraInteractivityWorld.detectInteractions(this.camera);
+		}
 
 		const imageDetails = {
 			width,
@@ -243,32 +249,36 @@ class ThreeSixtyMedia {
 
 		this.layoutSpriteButtons();
 
-		this.textureLoader.load(
-			image,
-			map => {
-				const material = new THREE.MeshBasicMaterial({
-					map: map,
-					color: 0xffffff,
-					fog: false,
-					transparent: true
-				});
-				const sprite = new THREE.Mesh(
-					new THREE.PlaneGeometry(width,height),
-					material
-				);
-				imageDetails.sprite = sprite;
-				sprite.position.z = -5;
-				sprite.scale.set(spriteScale, spriteScale, spriteScale);
-				this.buttonArea.add(sprite);
-				this.layoutSpriteButtons();
-				callback(sprite);
-			}
-		);
+		return new Promise(resolve => {
+			this.textureLoader.load(
+				image,
+				map => {
+					const material = new THREE.MeshBasicMaterial({
+						map: map,
+						color: 0xffffff,
+						fog: false,
+						transparent: true
+					});
+					const sprite = new THREE.Mesh(
+						new THREE.PlaneGeometry(width,height),
+						material
+					);
+					imageDetails.sprite = sprite;
+					sprite.position.z = -5;
+					sprite.scale.set(spriteScale, spriteScale, spriteScale);
+					imageDetails.events = this.cameraInteractivityWorld.makeTarget(sprite);
+					resolve(imageDetails.events);
+					this.buttonArea.add(sprite);
+					this.layoutSpriteButtons();
+					callback(sprite);
+				}
+			);
+		});
 	}
 
 	layoutSpriteButtons() {
 		let offset = 0;
-		let length = this.buttons.reduce((a,b) => a + b.width, 0);
+		const length = this.buttons.reduce((a,b) => a + b.width, 0);
 		for (const iD of this.buttons) {
 			if (iD.sprite) {
 				iD.sprite.position.x = (iD.width/2 + offset - length/2) * spriteScale;
@@ -323,7 +333,7 @@ class ThreeSixtyMedia {
 
 		if (document.isFullScreen !== undefined) {
 			this.addUiButton('Full Screen', 'F', 'fullscreen', function () {
-				this.fullscreen.bind(this.container)();
+				fullscreen.bind(this.container)();
 			});
 			this.addEventListener(document,'fullscreenchange', function() {
 				if ( document.isFullScreen ) {
@@ -336,7 +346,7 @@ class ThreeSixtyMedia {
 			}.bind(this));
 		} else if (document.webkitIsFullScreen !== undefined) {
 			this.addUiButton('Full Screen', 'F', 'fullscreen', function () {
-				this.fullscreen.bind(this.container)();
+				fullscreen.bind(this.container)();
 			});
 			this.addEventListener(document,'webkitfullscreenchange', function() {
 				if ( document.webkitIsFullScreen ) {
@@ -349,7 +359,7 @@ class ThreeSixtyMedia {
 			}.bind(this));
 		} else if (document.mozIsFullScreen !== undefined) {
 			this.addUiButton('Full Screen', 'F', 'fullscreen', function () {
-				this.fullscreen.bind(this.container)();
+				fullscreen.bind(this.container)();
 			});
 			this.addEventListener(document,'mozfullscreenchange', function() {
 				if ( document.mozIsFullScreen ) {
@@ -484,6 +494,7 @@ class ThreeSixtyMedia {
 	render() {
 		this.renderer.clear();
 
+		if (this.interactivityCheck) this.interactivityCheck();
 
 		if (this.buttonArea) {
 			this.buttonArea.checkInRange();
@@ -523,6 +534,7 @@ class ThreeSixtyMedia {
 		this.stopAnimation();
 		this.removeAllEventListeners();
 		this.container.removeChild(this.buttonContainer);
+		this.cameraInteractivityWorld.destroy();
 	}
 
 	onVRRequestPresent () {
