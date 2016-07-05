@@ -2,7 +2,7 @@
 /* global document, navigator, window, cancelAnimationFrame, requestAnimationFrame, THREE */
 
 const throttle = require('lodash/function/throttle');
-const spriteScale = 0.01;
+const spriteScale = 0.05;
 const DEG2RAD = Math.PI / 180.0;
 const CameraInteractivityWorld = require('./camera-interactivity.js');
 let rotWorldMatrix;
@@ -145,7 +145,8 @@ class ThreeSixtyMedia {
 		media.style.display = 'none';
 		this.media = media;
 
-		this.camera = new THREE.PerspectiveCamera( 90, this.media.width / this.media.height, 1, 10000 );
+		this.fov = opts.fov || 90;
+		this.camera = new THREE.PerspectiveCamera( this.fov, this.media.width / this.media.height, 0.05, 10000 );
 		this.camera.up.set( 0, 0, 1 );
 		this.scene = new THREE.Scene();
 		this.orientation = new THREE.Quaternion([0,0,0,1]);
@@ -264,7 +265,8 @@ class ThreeSixtyMedia {
 						material
 					);
 					imageDetails.sprite = sprite;
-					sprite.position.z = -5;
+					sprite.position.z = -30;
+					sprite.position.y = -5;
 					sprite.scale.set(spriteScale, spriteScale, spriteScale);
 					imageDetails.events = this.cameraInteractivityWorld.makeTarget(sprite);
 					resolve(imageDetails.events);
@@ -293,8 +295,8 @@ class ThreeSixtyMedia {
 	}) {
 		if (this.hud === undefined) {
 			const hud = new THREE.Object3D();
-			hud.position.set(0, 0, -2.1);
-			hud.scale.set(0.1, 0.1, 0.1);
+			hud.position.set(0, 0, -15);
+			hud.scale.set(0.5, 0.5, 0.5);
 			this.camera.add(hud);
 			this.scene.add(this.camera); // add the camera to the scene so that the hud is rendered
 			this.hud = hud;
@@ -303,7 +305,7 @@ class ThreeSixtyMedia {
 		this.textureLoader.load(
 			image,
 			map => {
-				const material = new THREE.SpriteMaterial( { map: map, color: 0xffffff, fog: false, transparent: true } );
+				const material = new THREE.SpriteMaterial( { map: map, color: 0xffffff, fog: false, transparent: true, opacity: 0.5 } );
 				const sprite = new THREE.Sprite(material);
 				this.hud.add(sprite);
 				callback(sprite);
@@ -484,7 +486,7 @@ class ThreeSixtyMedia {
 			this.camera.projectionMatrix = fovToProjection(eye.fieldOfView, true, this.camera.near, this.camera.far );
 			this.camera.position.add(new THREE.Vector3(...eye.offset));
 		} else {
-			this.camera.fov = 45;
+			this.camera.fov = this.fov || 90;
 			this.camera.updateProjectionMatrix();
 		}
 
@@ -494,16 +496,21 @@ class ThreeSixtyMedia {
 	render() {
 		this.renderer.clear();
 
-		if (this.interactivityCheck) this.interactivityCheck();
-
-		if (this.buttonArea) {
-			this.buttonArea.checkInRange();
-			this.buttonArea.rotation.y = (this.buttonArea.rotation.y + this.buttonArea.goalRotationY)/2;
-		}
+		if (this.hud) this.hud.visible = false;
+		if (this.buttonArea) this.buttonArea.visible = false;
 
 		if (this.vrDisplay) {
 			const pose = this.vrDisplay.getPose();
 			if (this.vrDisplay.isPresenting) {
+
+				if (this.hud) this.hud.visible = true;
+				if (this.buttonArea) {
+					this.buttonArea.checkInRange();
+					this.buttonArea.rotation.y = (this.buttonArea.rotation.y + this.buttonArea.goalRotationY)/2;
+					this.buttonArea.visible = true;
+					if (this.interactivityCheck) this.interactivityCheck();
+				}
+
 				const size = this.renderer.getSize();
 
 				this.renderer.setScissorTest( true );

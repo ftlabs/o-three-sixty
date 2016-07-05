@@ -33,8 +33,15 @@ function OThreeSixty(rootEl, opts) {
 
 OThreeSixty.prototype.init = function init(opts = {}) {
 
+	opts.fov = opts.fov || this.rootEl.dataset.oThreeSixtyFov || 90;
 	opts.latOffset = opts.latOffset || this.rootEl.dataset.oThreeSixtyLat || 0;
 	opts.reticule = opts.reticule || this.rootEl.dataset.oThreeSixtyReticule || '';
+	if (opts.allowNativeMediaInterpretation === undefined) {
+		opts.allowNativeMediaInterpretation = this.rootEl.dataset.oThreeSixtyNativeMediaInterpretation;
+	}
+	if (opts.allowNativeMediaInterpretation === undefined) {
+		opts.allowNativeMediaInterpretation = true;
+	}
 
 	this.webglPromise = Promise.resolve()
 	.then(() => {
@@ -87,7 +94,7 @@ OThreeSixty.prototype.init = function init(opts = {}) {
 
 		this.media = media;
 
-		if (navigator.userAgent.match(/samsung.* mobile vr/ig)) {
+		if (opts.allowNativeMediaInterpretation && navigator.userAgent.match(/samsung.* mobile vr/ig)) {
 			throw Error('360 Video handled natively');
 		} else {
 
