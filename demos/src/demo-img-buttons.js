@@ -16,6 +16,8 @@ function onHoverEnd() {
 	this.object3d.material.opacity = 0.5;
 }
 
+OThreeSixty.disableAutoInit = true;
+
 OThreeSixty
 .addScripts()
 .then(function () {

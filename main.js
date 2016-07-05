@@ -42,7 +42,7 @@ OThreeSixty.addScripts = function () {
 }
 
 const constructAll = function() {
-
+	if (OThreeSixty.disableAutoInit) return;
 	OThreeSixty.addScripts()
 	.then(() => {
 		[].slice.call(document.querySelectorAll('[data-o-component~="o-three-sixty"]')).forEach(function (el) {
