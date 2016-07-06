@@ -30,9 +30,9 @@ Embed Three Sixty distorted Media or o-videos, provide click-drag interface and 
 
 		You can also choose the starting angle
 
-		data-o-three-sixty-lat="15"
+		data-o-three-sixty-long="15"
 	-->
-	<div data-o-component="o-three-sixty" data-o-three-sixty-lat="15" >
+	<div data-o-component="o-three-sixty" data-o-three-sixty-long="15" >
 		<video
 			poster="https://image.webservices.ft.com/v1/images/raw/http%3A%2F%2Fftlabs.github.io%2Fthree-sixty-video%2Fimages%2Fmuaythai.jpg?source=test"
 			src="https://ada-pull-zone-egnalefgk5.netdna-ssl.com/mt2.webm"
@@ -50,7 +50,6 @@ Embed Three Sixty distorted Media or o-videos, provide click-drag interface and 
 	OThreeSixty(
 		document.querySelector('[data-o-component="o-three-sixty"]'),
 		{
-			latOffset: 15,
 			longOffset: 0
 		}
 	)

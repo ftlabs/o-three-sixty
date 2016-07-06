@@ -37,7 +37,7 @@ function OThreeSixty(rootEl, opts) {
 OThreeSixty.prototype.init = function init(opts = {}) {
 
 	opts.fov = opts.fov || this.rootEl.dataset.oThreeSixtyFov || 90;
-	opts.latOffset = opts.latOffset || this.rootEl.dataset.oThreeSixtyLat || 0;
+	opts.longOffset = opts.longOffset || this.rootEl.dataset.oThreeSixtyLong || 0;
 	opts.reticule = opts.reticule || this.rootEl.dataset.oThreeSixtyReticule || '';
 	if (opts.allowNativeMediaInterpretation === undefined) {
 		opts.allowNativeMediaInterpretation = this.rootEl.dataset.oThreeSixtyNativeMediaInterpretation;

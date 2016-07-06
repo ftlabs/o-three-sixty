@@ -24,7 +24,7 @@ OThreeSixty
 	return new OThreeSixty(
 		document.querySelector('[data-o-component~="o-three-sixty"]'), {
 			reticule: 'https://image.webservices.ft.com/v1/images/raw/https%3A%2F%2Fcloud.githubusercontent.com%2Fassets%2F4225330%2F16559249%2F9583d8ba-41e3-11e6-94dd-f47aded72252.png?source=origami-demo',
-			latOffset: 60,
+			longOffset: 60,
             fov: 60,
 
 			// Don't let the media be handled natively on gearVR

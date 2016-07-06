@@ -115,7 +115,7 @@ class ThreeSixtyMedia {
 		this.buttonContainer = document.createElement('div');
 		this.buttonContainer.classList.add('button-container');
 
-		this.latOffset = opts.latOffset;
+		this.longOffset = opts.longOffset;
 
 		container.classList.add('o-three-sixty-container');
 
@@ -428,7 +428,7 @@ class ThreeSixtyMedia {
 		geometry.applyMatrix(mS);
 
 		const sphere = new THREE.Mesh( geometry, material );
-		rotateAroundWorldAxis(sphere, yAxis, -this.latOffset * DEG2RAD);
+		rotateAroundWorldAxis(sphere, yAxis, -this.longOffset * DEG2RAD);
 		this.sphere = sphere;
 		this.scene.add( sphere );
 	}
