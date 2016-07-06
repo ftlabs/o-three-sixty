@@ -2,10 +2,10 @@
 	"description": "Display 360 degree panoramic media from brightcove",
 	"origamiType": "module",
 	"origamiVersion": 1,
-	"support": "https://github.com/Financial-Times/o-three-sixty/issues",
+	"support": "https://github.com/ftlabs/o-three-sixty/issues",
 	"supportStatus": "experimental",
 	"ci": {
-		"circle": "https://circleci.com/api/v1/project/Financial-Times/o-three-sixty"
+		"circle": "https://circleci.com/api/v1/project/ftlabs/o-three-sixty"
 	},
 	"browserFeatures": {
 		"required": [
